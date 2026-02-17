@@ -1,8 +1,16 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Website comparison
+
+Compare two websites side by side. Enter two URLs; the app crawls both sites (up to 15 pages each), captures full-page screenshots, and shows matching pages (by URL path) next to each other.
 
 ## Getting Started
 
-First, run the development server:
+Install Playwright’s Chromium browser (required for screenshots):
+
+```bash
+npx playwright install chromium
+```
+
+Then run the development server:
 
 ```bash
 npm run dev
