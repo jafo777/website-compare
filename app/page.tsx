@@ -7,12 +7,32 @@ type PageEntry = {
   screenshot: string;
 };
 
+type MatchPair = {
+  path: string;
+  screenshot1: string;
+  screenshot2: string;
+};
+
 type CompareResult = {
   url1: string;
   url2: string;
+  pairs?: MatchPair[];
   pages1: PageEntry[];
   pages2: PageEntry[];
 };
+
+function getMatchingPairs(result: CompareResult): MatchPair[] {
+  if (result.pairs && result.pairs.length > 0) return result.pairs;
+  const paths2 = new Set(result.pages2.map((p) => p.path));
+  return result.pages1
+    .filter((p) => paths2.has(p.path) && p.screenshot)
+    .map((p) => ({
+      path: p.path,
+      screenshot1: p.screenshot,
+      screenshot2: result.pages2.find((q) => q.path === p.path)!.screenshot,
+    }))
+    .sort((a, b) => (a.path === "/" ? -1 : b.path === "/" ? 1 : a.path.localeCompare(b.path)));
+}
 
 export default function Home() {
   const [url1, setUrl1] = useState("");
@@ -122,77 +142,130 @@ export default function Home() {
         )}
 
         {result && (
-          <section className="space-y-8">
+          <section className="space-y-10">
             <h2 className="text-xl font-semibold text-stone-800 dark:text-stone-200">
               Results
             </h2>
+            {(() => {
+              const pairs = getMatchingPairs(result);
+              return (
+                <>
             <p className="text-sm text-stone-600 dark:text-stone-400">
               {result.pages1.length} page(s) from Website 1 · {result.pages2.length} page(s) from Website 2
+              {pairs.length > 0 && ` · ${pairs.length} matching path(s) shown side by side`}
             </p>
+
+            {pairs.length > 0 && (
+              <div className="space-y-6">
+                <h3 className="text-lg font-medium text-stone-700 dark:text-stone-300">
+                  Matching page names (side by side)
+                </h3>
+                <div className="space-y-6">
+                  {pairs.map((pair) => (
+                    <div
+                      key={pair.path}
+                      className="rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 shadow-sm overflow-hidden"
+                    >
+                      <div className="bg-stone-100 dark:bg-stone-800 px-4 py-2 border-b border-stone-200 dark:border-stone-700">
+                        <span className="font-mono text-sm text-stone-700 dark:text-stone-300">
+                          {pair.path}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+                        <div className="border-r border-stone-200 dark:border-stone-700 p-2 bg-stone-50 dark:bg-stone-900/50">
+                          <div className="text-xs font-medium text-stone-500 dark:text-stone-400 mb-1">Website 1</div>
+                          <img
+                            src={`data:image/jpeg;base64,${pair.screenshot1}`}
+                            alt={`Website 1 – ${pair.path}`}
+                            className="w-full h-auto rounded border border-stone-200 dark:border-stone-600"
+                          />
+                        </div>
+                        <div className="p-2 bg-stone-50 dark:bg-stone-900/50">
+                          <div className="text-xs font-medium text-stone-500 dark:text-stone-400 mb-1">Website 2</div>
+                          <img
+                            src={`data:image/jpeg;base64,${pair.screenshot2}`}
+                            alt={`Website 2 – ${pair.path}`}
+                            className="w-full h-auto rounded border border-stone-200 dark:border-stone-600"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="space-y-6">
                 <h3 className="text-lg font-medium text-stone-700 dark:text-stone-300 truncate" title={result.url1}>
-                  Website 1
+                  {pairs.length > 0 ? "Only on Website 1" : "Website 1"}
                 </h3>
                 <p className="text-xs text-stone-500 dark:text-stone-400 truncate" title={result.url1}>
                   {result.url1}
                 </p>
                 <div className="space-y-6">
-                  {result.pages1.map((page) => (
-                    <div
-                      key={page.path}
-                      className="rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 shadow-sm overflow-hidden"
-                    >
-                      <div className="bg-stone-100 dark:bg-stone-800 px-4 py-2 border-b border-stone-200 dark:border-stone-700">
-                        <span className="font-mono text-sm text-stone-700 dark:text-stone-300">
-                          {page.path}
-                        </span>
+                  {result.pages1
+                    .filter((page) => !pairs.some((p) => p.path === page.path))
+                    .map((page) => (
+                      <div
+                        key={page.path}
+                        className="rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 shadow-sm overflow-hidden"
+                      >
+                        <div className="bg-stone-100 dark:bg-stone-800 px-4 py-2 border-b border-stone-200 dark:border-stone-700">
+                          <span className="font-mono text-sm text-stone-700 dark:text-stone-300">
+                            {page.path}
+                          </span>
+                        </div>
+                        <div className="p-2 bg-stone-50 dark:bg-stone-900/50">
+                          {page.screenshot ? (
+                            <img
+                              src={`data:image/jpeg;base64,${page.screenshot}`}
+                              alt={page.path}
+                              className="w-full h-auto rounded border border-stone-200 dark:border-stone-600"
+                            />
+                          ) : null}
+                        </div>
                       </div>
-                      <div className="p-2 bg-stone-50 dark:bg-stone-900/50">
-                        {page.screenshot ? (
-                          <img
-                            src={`data:image/jpeg;base64,${page.screenshot}`}
-                            alt={page.path}
-                            className="w-full h-auto rounded border border-stone-200 dark:border-stone-600"
-                          />
-                        ) : null}
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
               <div className="space-y-6">
                 <h3 className="text-lg font-medium text-stone-700 dark:text-stone-300 truncate" title={result.url2}>
-                  Website 2
+                  {pairs.length > 0 ? "Only on Website 2" : "Website 2"}
                 </h3>
                 <p className="text-xs text-stone-500 dark:text-stone-400 truncate" title={result.url2}>
                   {result.url2}
                 </p>
                 <div className="space-y-6">
-                  {result.pages2.map((page) => (
-                    <div
-                      key={page.path}
-                      className="rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 shadow-sm overflow-hidden"
-                    >
-                      <div className="bg-stone-100 dark:bg-stone-800 px-4 py-2 border-b border-stone-200 dark:border-stone-700">
-                        <span className="font-mono text-sm text-stone-700 dark:text-stone-300">
-                          {page.path}
-                        </span>
+                  {result.pages2
+                    .filter((page) => !pairs.some((p) => p.path === page.path))
+                    .map((page) => (
+                      <div
+                        key={page.path}
+                        className="rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 shadow-sm overflow-hidden"
+                      >
+                        <div className="bg-stone-100 dark:bg-stone-800 px-4 py-2 border-b border-stone-200 dark:border-stone-700">
+                          <span className="font-mono text-sm text-stone-700 dark:text-stone-300">
+                            {page.path}
+                          </span>
+                        </div>
+                        <div className="p-2 bg-stone-50 dark:bg-stone-900/50">
+                          {page.screenshot ? (
+                            <img
+                              src={`data:image/jpeg;base64,${page.screenshot}`}
+                              alt={page.path}
+                              className="w-full h-auto rounded border border-stone-200 dark:border-stone-600"
+                            />
+                          ) : null}
+                        </div>
                       </div>
-                      <div className="p-2 bg-stone-50 dark:bg-stone-900/50">
-                        {page.screenshot ? (
-                          <img
-                            src={`data:image/jpeg;base64,${page.screenshot}`}
-                            alt={page.path}
-                            className="w-full h-auto rounded border border-stone-200 dark:border-stone-600"
-                          />
-                        ) : null}
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             </div>
+                </>
+              );
+            })()}
           </section>
         )}
       </div>

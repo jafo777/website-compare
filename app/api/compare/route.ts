@@ -6,7 +6,7 @@ const PAGE_NAVIGATION_TIMEOUT_MS = 15000;
 
 function normalizeUrl(url: URL): string {
   const path = url.pathname.replace(/\/$/, "") || "/";
-  return path;
+  return path + (url.search || "");
 }
 
 function isSameSite(base: URL, candidate: URL): boolean {
@@ -15,7 +15,7 @@ function isSameSite(base: URL, candidate: URL): boolean {
 
 function toNormalizedFullUrl(url: URL): string {
   const path = url.pathname.replace(/\/$/, "") || "/";
-  return `${url.origin}${path}`;
+  return `${url.origin}${path}${url.search || ""}`;
 }
 
 async function crawlAndScreenshot(
@@ -146,9 +146,19 @@ export async function POST(request: NextRequest) {
       screenshot: screenshots2.get(path) ?? "",
     }));
 
+    const matchingPaths = [...screenshots1.keys()].filter((path) =>
+      screenshots2.has(path)
+    );
+    const pairs = sortPaths(matchingPaths).map((path) => ({
+      path: path || "/",
+      screenshot1: screenshots1.get(path) ?? "",
+      screenshot2: screenshots2.get(path) ?? "",
+    }));
+
     return NextResponse.json({
       url1,
       url2,
+      pairs,
       pages1,
       pages2,
     });
