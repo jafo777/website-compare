@@ -23,10 +23,13 @@ type CompareResult = {
   pages2: PageEntry[];
 };
 
-/** Normalize path for comparison: strip .htm, .html, and suffixes like -cc.htm */
+/** Normalize path for comparison: use only the last segment (after final "/"), then strip .htm, .html, and suffixes like -cc.htm */
 function normalizePathForComparison(path: string): string {
   if (!path || path === "/") return "/";
-  let s = path.replace(/-[a-zA-Z0-9]+\.(html?|htm)$/i, "");
+  const segments = path.split("/").filter(Boolean);
+  const lastSegment = segments.length > 0 ? segments[segments.length - 1] : "";
+  if (!lastSegment) return "/";
+  let s = lastSegment.replace(/-[a-zA-Z0-9]+\.(html?|htm)$/i, "");
   s = s.replace(/\.(html?|htm)$/i, "");
   return s || "/";
 }
@@ -55,6 +58,7 @@ function getMatchingPairs(result: CompareResult): MatchPair[] {
       });
     }
   }
+  console.log(pairs);
   return pairs.sort((a, b) =>
     a.normalizedPath === "/" ? -1 : b.normalizedPath === "/" ? 1 : a.normalizedPath.localeCompare(b.normalizedPath)
   );
@@ -205,7 +209,7 @@ export default function Home() {
                   Matching page names (side by side)
                 </h3>
                 <p className="text-sm text-stone-500 dark:text-stone-400">
-                  Page names are compared after removing suffixes like .htm, .html, and -cc.htm.
+                  Only the last part of each path (after the final &quot;/&quot;) is compared, after removing suffixes like .htm, .html, and -cc.htm.
                 </p>
                 <div className="space-y-6">
                   {pairs.map((pair) => (
