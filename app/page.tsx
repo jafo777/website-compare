@@ -8,7 +8,9 @@ type PageEntry = {
 };
 
 type MatchPair = {
-  path: string;
+  normalizedPath: string;
+  path1: string;
+  path2: string;
   screenshot1: string;
   screenshot2: string;
 };
@@ -21,17 +23,57 @@ type CompareResult = {
   pages2: PageEntry[];
 };
 
+/** Normalize path for comparison: strip .htm, .html, and suffixes like -cc.htm */
+function normalizePathForComparison(path: string): string {
+  if (!path || path === "/") return "/";
+  let s = path.replace(/-[a-zA-Z0-9]+\.(html?|htm)$/i, "");
+  s = s.replace(/\.(html?|htm)$/i, "");
+  return s || "/";
+}
+
 function getMatchingPairs(result: CompareResult): MatchPair[] {
   if (result.pairs && result.pairs.length > 0) return result.pairs;
-  const paths2 = new Set(result.pages2.map((p) => p.path));
-  return result.pages1
-    .filter((p) => paths2.has(p.path) && p.screenshot)
-    .map((p) => ({
-      path: p.path,
-      screenshot1: p.screenshot,
-      screenshot2: result.pages2.find((q) => q.path === p.path)!.screenshot,
-    }))
-    .sort((a, b) => (a.path === "/" ? -1 : b.path === "/" ? 1 : a.path.localeCompare(b.path)));
+  const byNormalized2 = new Map<string, PageEntry>();
+  for (const p of result.pages2) {
+    const key = normalizePathForComparison(p.path);
+    if (!byNormalized2.has(key)) byNormalized2.set(key, p);
+  }
+  const matchedNormalized = new Set<string>();
+  const pairs: MatchPair[] = [];
+  for (const p1 of result.pages1) {
+    if (!p1.screenshot) continue;
+    const key = normalizePathForComparison(p1.path);
+    const p2 = byNormalized2.get(key);
+    if (p2?.screenshot && !matchedNormalized.has(key)) {
+      matchedNormalized.add(key);
+      pairs.push({
+        normalizedPath: key,
+        path1: p1.path,
+        path2: p2.path,
+        screenshot1: p1.screenshot,
+        screenshot2: p2.screenshot,
+      });
+    }
+  }
+  return pairs.sort((a, b) =>
+    a.normalizedPath === "/" ? -1 : b.normalizedPath === "/" ? 1 : a.normalizedPath.localeCompare(b.normalizedPath)
+  );
+}
+
+/** Pages from site 1 that have no matching normalized path on site 2 */
+function getPagesOnlyOnSite1(result: CompareResult, pairs: MatchPair[]): PageEntry[] {
+  const matchedNormalized = new Set(pairs.map((p) => p.normalizedPath));
+  return result.pages1.filter(
+    (p) => !matchedNormalized.has(normalizePathForComparison(p.path))
+  );
+}
+
+/** Pages from site 2 that have no matching normalized path on site 1 */
+function getPagesOnlyOnSite2(result: CompareResult, pairs: MatchPair[]): PageEntry[] {
+  const matchedNormalized = new Set(pairs.map((p) => p.normalizedPath));
+  return result.pages2.filter(
+    (p) => !matchedNormalized.has(normalizePathForComparison(p.path))
+  );
 }
 
 export default function Home() {
@@ -148,11 +190,13 @@ export default function Home() {
             </h2>
             {(() => {
               const pairs = getMatchingPairs(result);
+              const only1 = getPagesOnlyOnSite1(result, pairs);
+              const only2 = getPagesOnlyOnSite2(result, pairs);
               return (
                 <>
             <p className="text-sm text-stone-600 dark:text-stone-400">
               {result.pages1.length} page(s) from Website 1 · {result.pages2.length} page(s) from Website 2
-              {pairs.length > 0 && ` · ${pairs.length} matching path(s) shown side by side`}
+              {pairs.length > 0 && ` · ${pairs.length} matching page name(s) shown side by side`}
             </p>
 
             {pairs.length > 0 && (
@@ -160,23 +204,33 @@ export default function Home() {
                 <h3 className="text-lg font-medium text-stone-700 dark:text-stone-300">
                   Matching page names (side by side)
                 </h3>
+                <p className="text-sm text-stone-500 dark:text-stone-400">
+                  Page names are compared after removing suffixes like .htm, .html, and -cc.htm.
+                </p>
                 <div className="space-y-6">
                   {pairs.map((pair) => (
                     <div
-                      key={pair.path}
+                      key={pair.normalizedPath}
                       className="rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 shadow-sm overflow-hidden"
                     >
-                      <div className="bg-stone-100 dark:bg-stone-800 px-4 py-2 border-b border-stone-200 dark:border-stone-700">
+                      <div className="bg-stone-100 dark:bg-stone-800 px-4 py-2 border-b border-stone-200 dark:border-stone-700 flex flex-wrap items-baseline gap-x-3 gap-y-1">
                         <span className="font-mono text-sm text-stone-700 dark:text-stone-300">
-                          {pair.path}
+                          {pair.normalizedPath === "/" ? "/" : pair.normalizedPath}
                         </span>
+                        {(pair.path1 !== pair.normalizedPath || pair.path2 !== pair.normalizedPath) && (
+                          <span className="text-xs text-stone-500 dark:text-stone-400">
+                            Website 1: <span className="font-mono">{pair.path1}</span>
+                            {" · "}
+                            Website 2: <span className="font-mono">{pair.path2}</span>
+                          </span>
+                        )}
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
                         <div className="border-r border-stone-200 dark:border-stone-700 p-2 bg-stone-50 dark:bg-stone-900/50">
                           <div className="text-xs font-medium text-stone-500 dark:text-stone-400 mb-1">Website 1</div>
                           <img
                             src={`data:image/jpeg;base64,${pair.screenshot1}`}
-                            alt={`Website 1 – ${pair.path}`}
+                            alt={`Website 1 – ${pair.path1}`}
                             className="w-full h-auto rounded border border-stone-200 dark:border-stone-600"
                           />
                         </div>
@@ -184,7 +238,7 @@ export default function Home() {
                           <div className="text-xs font-medium text-stone-500 dark:text-stone-400 mb-1">Website 2</div>
                           <img
                             src={`data:image/jpeg;base64,${pair.screenshot2}`}
-                            alt={`Website 2 – ${pair.path}`}
+                            alt={`Website 2 – ${pair.path2}`}
                             className="w-full h-auto rounded border border-stone-200 dark:border-stone-600"
                           />
                         </div>
@@ -204,9 +258,7 @@ export default function Home() {
                   {result.url1}
                 </p>
                 <div className="space-y-6">
-                  {result.pages1
-                    .filter((page) => !pairs.some((p) => p.path === page.path))
-                    .map((page) => (
+                  {only1.map((page) => (
                       <div
                         key={page.path}
                         className="rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 shadow-sm overflow-hidden"
@@ -237,9 +289,7 @@ export default function Home() {
                   {result.url2}
                 </p>
                 <div className="space-y-6">
-                  {result.pages2
-                    .filter((page) => !pairs.some((p) => p.path === page.path))
-                    .map((page) => (
+                  {only2.map((page) => (
                       <div
                         key={page.path}
                         className="rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 shadow-sm overflow-hidden"
