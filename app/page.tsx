@@ -31,6 +31,7 @@ function normalizePathForComparison(path: string): string {
   if (!lastSegment) return "/";
   let s = lastSegment.replace(/-[a-zA-Z0-9]+\.(html?|htm)$/i, "");
   s = s.replace(/\.(html?|htm)$/i, "");
+  console.log(s);
   return s || "/";
 }
 
@@ -47,6 +48,7 @@ function getMatchingPairs(result: CompareResult): MatchPair[] {
     if (!p1.screenshot) continue;
     const key = normalizePathForComparison(p1.path);
     const p2 = byNormalized2.get(key);
+    console.log(key, p2);
     if (p2?.screenshot && !matchedNormalized.has(key)) {
       matchedNormalized.add(key);
       pairs.push({
@@ -58,7 +60,7 @@ function getMatchingPairs(result: CompareResult): MatchPair[] {
       });
     }
   }
-  console.log(pairs);
+console.log(pairs);
   return pairs.sort((a, b) =>
     a.normalizedPath === "/" ? -1 : b.normalizedPath === "/" ? 1 : a.normalizedPath.localeCompare(b.normalizedPath)
   );
