@@ -228,6 +228,9 @@ export default function Home() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
                         <div className="border-r border-stone-200 dark:border-stone-700 p-2 bg-stone-50 dark:bg-stone-900/50">
                           <div className="text-xs font-medium text-stone-500 dark:text-stone-400 mb-1">Website 1</div>
+                          <div className="font-mono text-sm text-stone-700 dark:text-stone-300 mb-2">
+                            {pair.normalizedPath === "/" ? "/" : pair.normalizedPath}
+                          </div>
                           <img
                             src={`data:image/jpeg;base64,${pair.screenshot1}`}
                             alt={`Website 1 – ${pair.path1}`}
@@ -236,6 +239,9 @@ export default function Home() {
                         </div>
                         <div className="p-2 bg-stone-50 dark:bg-stone-900/50">
                           <div className="text-xs font-medium text-stone-500 dark:text-stone-400 mb-1">Website 2</div>
+                          <div className="font-mono text-sm text-stone-700 dark:text-stone-300 mb-2">
+                            {pair.normalizedPath === "/" ? "/" : pair.normalizedPath}
+                          </div>
                           <img
                             src={`data:image/jpeg;base64,${pair.screenshot2}`}
                             alt={`Website 2 – ${pair.path2}`}
