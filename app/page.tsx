@@ -148,7 +148,13 @@ function ScreenshotWithOverlay({
 }
 
 /** One comparison row: computes diff when both screenshots exist and renders both columns with yellow boxes. */
-function ComparisonRowContent({ row }: { row: ComparisonRow }) {
+function ComparisonRowContent({
+  row,
+  highlightDifferences,
+}: {
+  row: ComparisonRow;
+  highlightDifferences: boolean;
+}) {
   const dataUrl1 = row.page1 ? `data:image/jpeg;base64,${row.page1.screenshot}` : null;
   const dataUrl2 = row.page2 ? `data:image/jpeg;base64,${row.page2.screenshot}` : null;
   const boxes = useDiffBoxes(
@@ -164,7 +170,7 @@ function ComparisonRowContent({ row }: { row: ComparisonRow }) {
           {row.page1 ? row.page1.path : "—"}
         </div>
         {row.page1?.screenshot ? (
-          <ScreenshotWithOverlay dataUrl={dataUrl1!} alt={row.page1.path} boxes={boxes} />
+          <ScreenshotWithOverlay dataUrl={dataUrl1!} alt={row.page1.path} boxes={highlightDifferences ? boxes : null} />
         ) : (
           <div className="flex items-center justify-center h-32 rounded border border-dashed border-stone-300 dark:border-stone-600 text-stone-500 dark:text-stone-400 text-sm">
             No page
@@ -177,7 +183,7 @@ function ComparisonRowContent({ row }: { row: ComparisonRow }) {
           {row.page2 ? row.page2.path : "—"}
         </div>
         {row.page2?.screenshot ? (
-          <ScreenshotWithOverlay dataUrl={dataUrl2!} alt={row.page2.path} boxes={boxes} />
+          <ScreenshotWithOverlay dataUrl={dataUrl2!} alt={row.page2.path} boxes={highlightDifferences ? boxes : null} />
         ) : (
           <div className="flex items-center justify-center h-32 rounded border border-dashed border-stone-300 dark:border-stone-600 text-stone-500 dark:text-stone-400 text-sm">
             No page
@@ -248,6 +254,7 @@ function getComparisonRows(result: CompareResult): ComparisonRow[] {
 export default function Home() {
   const [url1, setUrl1] = useState("");
   const [url2, setUrl2] = useState("");
+  const [highlightDifferences, setHighlightDifferences] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<CompareResult | null>(null);
@@ -327,7 +334,19 @@ export default function Home() {
               />
             </div>
           </div>
-          <div className="mt-4 flex items-center gap-3">
+          <div className="mt-4 flex flex-wrap items-center gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={highlightDifferences}
+                onChange={(e) => setHighlightDifferences(e.target.checked)}
+                disabled={loading}
+                className="rounded border-stone-300 dark:border-stone-600 text-amber-600 focus:ring-amber-500"
+              />
+              <span className="text-sm text-stone-700 dark:text-stone-300">
+                Highlight differences between screenshots
+              </span>
+            </label>
             <button
               type="submit"
               disabled={loading}
@@ -375,7 +394,7 @@ export default function Home() {
                     </span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-                    <ComparisonRowContent row={row} />
+                    <ComparisonRowContent row={row} highlightDifferences={highlightDifferences} />
                   </div>
                 </div>
               ))}
