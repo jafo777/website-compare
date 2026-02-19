@@ -191,8 +191,8 @@ export default function Home() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
                     <div className="border-r border-stone-200 dark:border-stone-700 p-2 bg-stone-50 dark:bg-stone-900/50 min-h-[120px]">
                       <div className="text-xs font-medium text-stone-500 dark:text-stone-400 mb-1">Website 1</div>
-                      <div className="font-mono text-sm text-stone-700 dark:text-stone-300 mb-2">
-                        {row.normalizedPath === "/" ? "/" : row.normalizedPath}
+                      <div className="font-mono text-sm text-stone-700 dark:text-stone-300 mb-2 break-all">
+                        {row.page1 ? row.page1.path : "—"}
                       </div>
                       {row.page1?.screenshot ? (
                         <img
@@ -208,8 +208,8 @@ export default function Home() {
                     </div>
                     <div className="p-2 bg-stone-50 dark:bg-stone-900/50 min-h-[120px]">
                       <div className="text-xs font-medium text-stone-500 dark:text-stone-400 mb-1">Website 2</div>
-                      <div className="font-mono text-sm text-stone-700 dark:text-stone-300 mb-2">
-                        {row.normalizedPath === "/" ? "/" : row.normalizedPath}
+                      <div className="font-mono text-sm text-stone-700 dark:text-stone-300 mb-2 break-all">
+                        {row.page2 ? row.page2.path : "—"}
                       </div>
                       {row.page2?.screenshot ? (
                         <img
