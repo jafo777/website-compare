@@ -28,7 +28,7 @@ function normalizePathForComparison(path: string): string {
   const lastSegment = segments.length > 0 ? segments[segments.length - 1] : "";
   if (!lastSegment) return "/";
   let s = lastSegment;
-  if (s.endsWith("-cc.htm")) s = s.slice(0, -6);
+  if (s.endsWith("-cc.htm")) s = s.slice(0, -7);
   if (s.endsWith(".html")) s = s.slice(0, -5);
   if (s.endsWith(".htm")) s = s.slice(0, -4);
   return s || "/";
