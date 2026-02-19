@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { chromium } from "playwright";
 
 const MAX_PAGES_PER_SITE = 100;
-const PAGE_NAVIGATION_TIMEOUT_MS = 15000;
+const PAGE_NAVIGATION_TIMEOUT_MS = 7000;
 
 function normalizeUrl(url: URL): string {
   const path = url.pathname.replace(/\/$/, "") || "/";

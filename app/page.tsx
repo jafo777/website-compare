@@ -23,15 +23,15 @@ type CompareResult = {
   pages2: PageEntry[];
 };
 
-/** Normalize path for comparison: use only the last segment (after final "/"), then strip .htm, .html, and suffixes like -cc.htm */
+/** Normalize path for comparison: use only the last segment (after final "/"), then strip .htm, .html, and short suffixes like -cc.htm (not hyphens that are part of the name, e.g. our-process) */
 function normalizePathForComparison(path: string): string {
   if (!path || path === "/") return "/";
   const segments = path.split("/").filter(Boolean);
   const lastSegment = segments.length > 0 ? segments[segments.length - 1] : "";
   if (!lastSegment) return "/";
-  let s = lastSegment.replace(/-[a-zA-Z0-9]+\.(html?|htm)$/i, "");
+  // Strip short variant suffixes like -cc.htm, -en.html (1–6 chars), but not e.g. "our-process.htm" where "process" is part of the name
+  let s = lastSegment.replace(/-[a-zA-Z0-9]{1,6}\.(html?|htm)$/i, "");
   s = s.replace(/\.(html?|htm)$/i, "");
-  console.log(s);
   return s || "/";
 }
 
