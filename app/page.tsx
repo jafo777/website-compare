@@ -281,6 +281,9 @@ export default function Home() {
                           </span>
                         </div>
                         <div className="p-2 bg-stone-50 dark:bg-stone-900/50">
+                          <div className="font-mono text-sm text-stone-700 dark:text-stone-300 mb-2">
+                            {normalizePathForComparison(page.path) === "/" ? "/" : normalizePathForComparison(page.path)}
+                          </div>
                           {page.screenshot ? (
                             <img
                               src={`data:image/jpeg;base64,${page.screenshot}`}
@@ -312,6 +315,9 @@ export default function Home() {
                           </span>
                         </div>
                         <div className="p-2 bg-stone-50 dark:bg-stone-900/50">
+                          <div className="font-mono text-sm text-stone-700 dark:text-stone-300 mb-2">
+                            {normalizePathForComparison(page.path) === "/" ? "/" : normalizePathForComparison(page.path)}
+                          </div>
                           {page.screenshot ? (
                             <img
                               src={`data:image/jpeg;base64,${page.screenshot}`}
