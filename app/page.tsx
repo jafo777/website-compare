@@ -254,7 +254,7 @@ function getComparisonRows(result: CompareResult): ComparisonRow[] {
 export default function Home() {
   const [url1, setUrl1] = useState("");
   const [url2, setUrl2] = useState("");
-  const [highlightDifferences, setHighlightDifferences] = useState(true);
+  const [highlightDifferences, setHighlightDifferences] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<CompareResult | null>(null);
