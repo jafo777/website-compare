@@ -60,6 +60,16 @@ async function crawlAndScreenshot(
         }
         await page.waitForTimeout(1500);
 
+        // Hide OneTrust cookie consent banner so it doesn't appear in screenshots
+        await page.addStyleTag({
+          content: [
+            "#onetrust-consent-sdk { display: none !important; }",
+            "#onetrust-banner-sdk { display: none !important; }",
+            ".onetrust-pc-dark-filter { display: none !important; }",
+            "#ot-sdk-btn-floating { display: none !important; }",
+          ].join("\n"),
+        });
+
         const screenshot = await page.screenshot({
           type: "jpeg",
           quality: 85,
