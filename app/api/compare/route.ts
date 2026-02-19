@@ -18,13 +18,30 @@ function toNormalizedFullUrl(url: URL): string {
   return `${url.origin}${path}${url.search || ""}`;
 }
 
+const VIEWPORTS = {
+  desktop: {
+    width: 1280,
+    height: 800,
+    userAgent:
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+  },
+  mobile: {
+    width: 375,
+    height: 812,
+    userAgent:
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
+  },
+} as const;
+
 async function crawlAndScreenshot(
-  startUrl: string
+  startUrl: string,
+  viewportKey: keyof typeof VIEWPORTS = "desktop"
 ): Promise<Map<string, string>> {
   const results = new Map<string, string>();
   const start = new URL(startUrl);
   const toVisit = new Set<string>([toNormalizedFullUrl(start)]);
   const visited = new Set<string>();
+  const { width, height, userAgent } = VIEWPORTS[viewportKey];
 
   const browser = await chromium.launch({
     headless: true,
@@ -33,9 +50,8 @@ async function crawlAndScreenshot(
 
   try {
     const context = await browser.newContext({
-      viewport: { width: 1280, height: 800 },
-      userAgent:
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+      viewport: { width, height },
+      userAgent,
     });
 
     while (toVisit.size > 0 && visited.size < MAX_PAGES_PER_SITE) {
@@ -136,9 +152,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const viewport =
+      body?.viewport === "mobile" ? "mobile" : "desktop";
+
     const [screenshots1, screenshots2] = await Promise.all([
-      crawlAndScreenshot(url1),
-      crawlAndScreenshot(url2),
+      crawlAndScreenshot(url1, viewport),
+      crawlAndScreenshot(url2, viewport),
     ]);
 
     const sortPaths = (paths: string[]) =>
