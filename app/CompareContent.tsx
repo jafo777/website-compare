@@ -159,7 +159,9 @@ function normalizePathForComparison(path: string): string {
   if (s.endsWith("-cc.htm")) s = s.slice(0, -7);
   if (s.endsWith(".html")) s = s.slice(0, -5);
   if (s.endsWith(".htm")) s = s.slice(0, -4);
-  return s || "/";
+  s = s || "/";
+  if (s === "" || s.toLowerCase() === "index") return "/";
+  return s;
 }
 
 function getComparisonRows(result: CompareResult): ComparisonRow[] {
