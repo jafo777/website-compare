@@ -200,6 +200,26 @@ function fullPageUrl(baseUrl: string, path: string): string {
   }
 }
 
+/** Build URL for "not found" label: append normalized path to base path, preserve query string. */
+function notFoundUrl(baseUrl: string, normalizedPath: string): string {
+  try {
+    const u = new URL(baseUrl);
+    const pathNoTrailing = u.pathname.replace(/\/$/, "") || "";
+    const segment =
+      normalizedPath === "/" || normalizedPath === ""
+        ? ""
+        : normalizedPath.startsWith("/")
+          ? normalizedPath.slice(1)
+          : normalizedPath;
+    const newPathname = segment === "" ? (pathNoTrailing || "/") : `${pathNoTrailing}/${segment}`;
+    return u.origin + newPathname + u.search;
+  } catch {
+    const base = baseUrl.replace(/\/$/, "");
+    const seg = normalizedPath === "/" ? "" : normalizedPath.replace(/^\//, "");
+    return seg ? `${base}/${seg}` : base;
+  }
+}
+
 function ComparisonRowContent({
   row,
   highlightDifferences,
@@ -241,7 +261,7 @@ function ComparisonRowContent({
         ) : (
           <div className="flex flex-col items-center justify-center h-32 rounded border border-dashed border-stone-300 dark:border-stone-600 text-stone-500 dark:text-stone-400 text-sm px-2 text-center">
             <span className="break-all font-mono">
-              {fullPageUrl(baseUrl1, row.normalizedPath === "/" ? "/" : row.normalizedPath)}
+              {notFoundUrl(baseUrl1, row.normalizedPath)}
             </span>
             <span className="mt-1 text-red-600 dark:text-red-400 font-medium">not found</span>
           </div>
@@ -268,7 +288,7 @@ function ComparisonRowContent({
         ) : (
           <div className="flex flex-col items-center justify-center h-32 rounded border border-dashed border-stone-300 dark:border-stone-600 text-stone-500 dark:text-stone-400 text-sm px-2 text-center">
             <span className="break-all font-mono">
-              {fullPageUrl(baseUrl2, row.normalizedPath === "/" ? "/" : row.normalizedPath)}
+              {notFoundUrl(baseUrl2, row.normalizedPath)}
             </span>
             <span className="mt-1 text-red-600 dark:text-red-400 font-medium">not found</span>
           </div>
