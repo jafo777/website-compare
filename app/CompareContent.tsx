@@ -240,8 +240,10 @@ function ComparisonRowContent({
           <ScreenshotWithOverlay dataUrl={dataUrl1!} alt={row.page1.path} boxes={highlightDifferences ? boxes : null} />
         ) : (
           <div className="flex flex-col items-center justify-center h-32 rounded border border-dashed border-stone-300 dark:border-stone-600 text-stone-500 dark:text-stone-400 text-sm px-2 text-center">
-            <span className="break-all">{baseUrl1}</span>
-            <span className="font-mono mt-1">{row.normalizedPath === "/" ? "/" : row.normalizedPath}</span>
+            <span className="break-all font-mono">
+              {fullPageUrl(baseUrl1, row.normalizedPath === "/" ? "/" : row.normalizedPath)}
+            </span>
+            <span className="mt-1 text-red-600 dark:text-red-400 font-medium">not found</span>
           </div>
         )}
       </div>
@@ -265,8 +267,10 @@ function ComparisonRowContent({
           <ScreenshotWithOverlay dataUrl={dataUrl2!} alt={row.page2.path} boxes={highlightDifferences ? boxes : null} />
         ) : (
           <div className="flex flex-col items-center justify-center h-32 rounded border border-dashed border-stone-300 dark:border-stone-600 text-stone-500 dark:text-stone-400 text-sm px-2 text-center">
-            <span className="break-all">{baseUrl2}</span>
-            <span className="font-mono mt-1">{row.normalizedPath === "/" ? "/" : row.normalizedPath}</span>
+            <span className="break-all font-mono">
+              {fullPageUrl(baseUrl2, row.normalizedPath === "/" ? "/" : row.normalizedPath)}
+            </span>
+            <span className="mt-1 text-red-600 dark:text-red-400 font-medium">not found</span>
           </div>
         )}
       </div>
