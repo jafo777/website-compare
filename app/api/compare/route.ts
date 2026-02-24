@@ -132,8 +132,8 @@ async function crawlAndScreenshot(
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const url1 = body?.url1?.trim();
-    const url2 = body?.url2?.trim();
+    const url1 = (body?.url1?.trim() ?? "").replace(/\/$/, "");
+    const url2 = (body?.url2?.trim() ?? "").replace(/\/$/, "");
 
     if (!url1 || !url2) {
       return NextResponse.json(
