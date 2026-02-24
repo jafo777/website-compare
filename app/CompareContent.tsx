@@ -183,12 +183,33 @@ function getComparisonRows(result: CompareResult): ComparisonRow[] {
     }));
 }
 
+function fullPageUrl(baseUrl: string, path: string): string {
+  try {
+    const u = new URL(baseUrl);
+    const pathNorm = path.startsWith("/") ? path : `/${path}`;
+    const basePathname = u.pathname.replace(/\/$/, "") || "/";
+    if (pathNorm === basePathname || (pathNorm === "/" && basePathname === "/")) {
+      return baseUrl;
+    }
+    u.pathname = pathNorm;
+    return u.href;
+  } catch {
+    const base = baseUrl.replace(/\/$/, "");
+    const p = path.startsWith("/") ? path : `/${path}`;
+    return `${base}${p}`;
+  }
+}
+
 function ComparisonRowContent({
   row,
   highlightDifferences,
+  baseUrl1,
+  baseUrl2,
 }: {
   row: ComparisonRow;
   highlightDifferences: boolean;
+  baseUrl1: string;
+  baseUrl2: string;
 }) {
   const dataUrl1 = row.page1 ? `data:image/jpeg;base64,${row.page1.screenshot}` : null;
   const dataUrl2 = row.page2 ? `data:image/jpeg;base64,${row.page2.screenshot}` : null;
@@ -201,27 +222,51 @@ function ComparisonRowContent({
     <>
       <div className="border-r border-stone-200 dark:border-stone-700 p-2 bg-stone-50 dark:bg-stone-900/50 min-h-[120px]">
         <div className="text-xs font-medium text-stone-500 dark:text-stone-400 mb-1">Website 1</div>
-        <div className="font-mono text-sm text-stone-700 dark:text-stone-300 mb-2 break-all">
-          {row.page1 ? row.page1.path : "—"}
+        <div className="mb-2">
+          {row.page1 ? (
+            <a
+              href={fullPageUrl(baseUrl1, row.page1.path)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-medium text-amber-600 hover:text-amber-700 dark:text-amber-500 dark:hover:text-amber-400"
+            >
+              link to page
+            </a>
+          ) : (
+            <span className="text-sm text-stone-500 dark:text-stone-400">—</span>
+          )}
         </div>
         {row.page1?.screenshot ? (
           <ScreenshotWithOverlay dataUrl={dataUrl1!} alt={row.page1.path} boxes={highlightDifferences ? boxes : null} />
         ) : (
-          <div className="flex items-center justify-center h-32 rounded border border-dashed border-stone-300 dark:border-stone-600 text-stone-500 dark:text-stone-400 text-sm">
-            No page
+          <div className="flex flex-col items-center justify-center h-32 rounded border border-dashed border-stone-300 dark:border-stone-600 text-stone-500 dark:text-stone-400 text-sm px-2 text-center">
+            <span className="break-all">{baseUrl1}</span>
+            <span className="font-mono mt-1">{row.normalizedPath === "/" ? "/" : row.normalizedPath}</span>
           </div>
         )}
       </div>
       <div className="p-2 bg-stone-50 dark:bg-stone-900/50 min-h-[120px]">
         <div className="text-xs font-medium text-stone-500 dark:text-stone-400 mb-1">Website 2</div>
-        <div className="font-mono text-sm text-stone-700 dark:text-stone-300 mb-2 break-all">
-          {row.page2 ? row.page2.path : "—"}
+        <div className="mb-2">
+          {row.page2 ? (
+            <a
+              href={fullPageUrl(baseUrl2, row.page2.path)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-medium text-amber-600 hover:text-amber-700 dark:text-amber-500 dark:hover:text-amber-400"
+            >
+              link to page
+            </a>
+          ) : (
+            <span className="text-sm text-stone-500 dark:text-stone-400">—</span>
+          )}
         </div>
         {row.page2?.screenshot ? (
           <ScreenshotWithOverlay dataUrl={dataUrl2!} alt={row.page2.path} boxes={highlightDifferences ? boxes : null} />
         ) : (
-          <div className="flex items-center justify-center h-32 rounded border border-dashed border-stone-300 dark:border-stone-600 text-stone-500 dark:text-stone-400 text-sm">
-            No page
+          <div className="flex flex-col items-center justify-center h-32 rounded border border-dashed border-stone-300 dark:border-stone-600 text-stone-500 dark:text-stone-400 text-sm px-2 text-center">
+            <span className="break-all">{baseUrl2}</span>
+            <span className="font-mono mt-1">{row.normalizedPath === "/" ? "/" : row.normalizedPath}</span>
           </div>
         )}
       </div>
@@ -393,7 +438,12 @@ export function CompareContent({
                     </span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-                    <ComparisonRowContent row={row} highlightDifferences={highlightDifferences} />
+                    <ComparisonRowContent
+                      row={row}
+                      highlightDifferences={highlightDifferences}
+                      baseUrl1={result.url1}
+                      baseUrl2={result.url2}
+                    />
                   </div>
                 </div>
               ))}
@@ -402,5 +452,5 @@ export function CompareContent({
         )}
       </div>
     </div>
-  );
+  ); 
 }
