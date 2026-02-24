@@ -150,7 +150,21 @@ type PageEntry = { path: string; screenshot: string };
 type ComparisonRow = { normalizedPath: string; page1: PageEntry | null; page2: PageEntry | null };
 type CompareResult = { url1: string; url2: string; pages1: PageEntry[]; pages2: PageEntry[] };
 
-function normalizePathForComparison(path: string): string {
+/** Last path segment of a base URL (e.g. "https://site.com/abc-123" → "abc-123"). */
+function getBaseUrlLastSegment(baseUrl: string): string {
+  try {
+    const pathname = new URL(baseUrl).pathname.replace(/\/$/, "") || "";
+    const segments = pathname.split("/").filter(Boolean);
+    return segments.length > 0 ? segments[segments.length - 1] : "";
+  } catch {
+    return "";
+  }
+}
+
+function normalizePathForComparison(
+  path: string,
+  baseUrlLastSegment?: string
+): string {
   if (!path || path === "/") return "/";
   const segments = path.split("/").filter(Boolean);
   const lastSegment = segments.length > 0 ? segments[segments.length - 1] : "";
@@ -161,18 +175,22 @@ function normalizePathForComparison(path: string): string {
   if (s.endsWith(".htm")) s = s.slice(0, -4);
   s = s || "/";
   if (s === "" || s.toLowerCase() === "index") return "/";
+  if (baseUrlLastSegment !== undefined && baseUrlLastSegment !== "" && s.toLowerCase() === baseUrlLastSegment.toLowerCase()) return "/";
   return s;
 }
 
 function getComparisonRows(result: CompareResult): ComparisonRow[] {
+  const baseUrl1LastSegment = getBaseUrlLastSegment(result.url1);
+  const baseUrl2LastSegment = getBaseUrlLastSegment(result.url2);
+
   const byNormalized1 = new Map<string, PageEntry>();
   for (const p of result.pages1) {
-    const key = normalizePathForComparison(p.path);
+    const key = normalizePathForComparison(p.path, baseUrl1LastSegment);
     if (!byNormalized1.has(key)) byNormalized1.set(key, p);
   }
   const byNormalized2 = new Map<string, PageEntry>();
   for (const p of result.pages2) {
-    const key = normalizePathForComparison(p.path);
+    const key = normalizePathForComparison(p.path, baseUrl2LastSegment);
     if (!byNormalized2.has(key)) byNormalized2.set(key, p);
   }
   const allKeys = new Set([...byNormalized1.keys(), ...byNormalized2.keys()]);
