@@ -280,9 +280,14 @@ function ComparisonRowContent({
           <ScreenshotWithOverlay dataUrl={dataUrl1!} alt={row.page1.path} boxes={highlightDifferences ? boxes : null} />
         ) : (
           <div className="flex flex-col items-center justify-center h-32 rounded border border-dashed border-stone-300 dark:border-stone-600 text-stone-500 dark:text-stone-400 text-sm px-2 text-center">
-            <span className="break-all font-mono">
+            <a
+              href={notFoundUrl(baseUrl1, row.normalizedPath)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="break-all font-mono text-amber-600 hover:text-amber-700 dark:text-amber-500 dark:hover:text-amber-400"
+            >
               {notFoundUrl(baseUrl1, row.normalizedPath)}
-            </span>
+            </a>
             <span className="mt-1 text-red-600 dark:text-red-400 font-medium">not found</span>
           </div>
         )}
@@ -307,9 +312,14 @@ function ComparisonRowContent({
           <ScreenshotWithOverlay dataUrl={dataUrl2!} alt={row.page2.path} boxes={highlightDifferences ? boxes : null} />
         ) : (
           <div className="flex flex-col items-center justify-center h-32 rounded border border-dashed border-stone-300 dark:border-stone-600 text-stone-500 dark:text-stone-400 text-sm px-2 text-center">
-            <span className="break-all font-mono">
+            <a
+              href={notFoundUrl(baseUrl2, row.normalizedPath)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="break-all font-mono text-amber-600 hover:text-amber-700 dark:text-amber-500 dark:hover:text-amber-400"
+            >
               {notFoundUrl(baseUrl2, row.normalizedPath)}
-            </span>
+            </a>
             <span className="mt-1 text-red-600 dark:text-red-400 font-medium">not found</span>
           </div>
         )}
