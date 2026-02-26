@@ -147,6 +147,29 @@ This gives a **single folder** (or .app bundle) the other person can run on thei
 
 They do **not** need Node or npm installed; everything needed (Node binary, Chromium, app) is inside the folder.
 
+### Troubleshooting: "Target page, context or browser has been closed" / Chromium won't start
+
+If the portable build fails on the other Mac with a Playwright/Chromium error, try these steps (in order):
+
+1. **Remove macOS quarantine** — Zips and downloads get a quarantine flag that can block Chromium:
+
+   ```bash
+   xattr -dr com.apple.quarantine /path/to/website-compare-portable-main
+   ```
+
+   Replace `/path/to/website-compare-portable-main` with the actual path to the unzipped folder.
+
+2. **Code-sign the Chromium binaries** — Playwright’s Chromium isn’t signed; macOS may block it:
+
+   ```bash
+   cd /path/to/website-compare-portable-main
+   codesign --sign - --force --deep playwright-browsers/
+   ```
+
+3. **Check architecture (Intel vs Apple Silicon)** — Playwright downloads architecture-specific binaries. If you built the portable on an **Intel Mac** but they run it on **Apple Silicon** (or vice versa), Chromium may fail. Either build the portable on the same CPU type as the target Mac, or include both `mac-arm64` and `mac-x64` browser folders in `playwright-browsers/` so Playwright can pick the correct one.
+
+4. **Run from Terminal** — Run `./run.sh` from Terminal so you can see any error output. Copy the full error if the problem persists.
+
 ### Summary
 
 | Goal                         | Option              | Works for this app? |
